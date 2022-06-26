@@ -1,21 +1,21 @@
 h1 {
-  color: #0000DD;
+  color: #0066DD;
 }
 
 a {
-  color: #0000DD;
+  color: #0066DD;
 }
 
 a:hover {
-  color: #0000FF;
+  color: #0066FF;
 }
 
 .wy-nav .wy-menu-vertical header {
-  color: #0000DD
+  color: #0066DD
 }
 
 .wy-menu-vertical header, .wy-menu-vertical p.caption {
-  color: #0000DD;
+  color: #0066DD;
 }
 
 .wy-side-nav-search {
@@ -27,5 +27,5 @@ a:hover {
   width: 100%;
   border-radius: 0px;
   padding: 6px 12px;
-  border-color: #0000DD;
+  border-color: #0066DD;
 }

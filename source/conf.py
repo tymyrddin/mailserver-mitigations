@@ -65,7 +65,7 @@ html_theme_options = {
     'titles_only': True
 }
 
-html_title = "Attack trees"
+html_title = "Mailserver mitigations"
 html_logo = "img/logo.png"
 html_favicon = "img/favicon.ico"
 
