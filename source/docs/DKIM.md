@@ -132,7 +132,9 @@ Exact format may vary per DNS provider. Check the documentation for the exact st
 * Try to send a mail. Check `/var/log/mail.log`
 * Test the installation with `opendkim-testkey`: 
 
-    # opendkim-testkey -d $domain.tld -s myselector -vvv
+```shell
+# opendkim-testkey -d $domain.tld -s myselector -vvv
+```
 
 ## Configuration resources
 
