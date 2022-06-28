@@ -6,19 +6,6 @@
 Mailserver mitigations
 ==================================================
 
-All `Mitigations`_.
-
-.. _Mitigations: https://tymyrddin.github.io/mitigations/
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-   :includehidden:
-   :caption: Common mitigations
-
-   docs/*
-
-
 * Use multiple listeners for each interface and correlate them with certain allow and deny rules.
 * When having an external facing mailserver and an internal mailserver, relay rules based on sender address/recipient address, or relaying for authenticated users only can be implemented dependend on context and purpose (but NEITHER is to accept open relaying).
 * Postfix is a MTA (Mail Transfer Agent) that sends and receives emails to and from other computers on the network using the Simple Mail Transfer Protocol (SMTP). It is widely used, well documented, and actively maintained and developed. It requires minimal configuration and is efficient with system resources.
@@ -32,3 +19,16 @@ All `Mitigations`_.
 * Instead of using Sieve, Spamassassin, (or Amavis, Pyzor and Razor) and OpenDKIM, Rspamd can be used.
 * Limiting the number of connection and authentication errors, the maximum number of commands or setting a time-out for your sessions can help protect a mail server from further DOS attacks.
 * After a user is authenticated over Simple Message Transfer Protocol (SMTP), there will be no automatically encrypted connection. Commands and emails are exchanged with the server in plain text, allowing a man-in-the-middle attacker to read and modify the communication and inject new commands. Which is why we want TLS (Transport Level Security).
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+   :includehidden:
+   :caption: Common mitigations
+
+   docs/*
+
+.. toctree::
+   :caption: All mitigations
+
+   Overview <https://tymyrddin.github.io/mitigations/>
