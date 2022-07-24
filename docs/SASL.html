@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SASL &mdash; Mailserver mitigations</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SPF" href="SPF.html" />
+    <link rel="prev" title="Rspamd" href="Rspamd.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mailserver mitigations
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Common mitigations</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Cyrus.html">Cyrus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DANE.html">DANE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DKIM.html">DKIM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Dovecot.html">Dovecot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Postfix.html">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rspamd.html">Rspamd</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SASL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SPF.html">SPF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TLS.html">TLS</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">All mitigations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://tymyrddin.github.io/mitigations/">Overview</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mailserver mitigations</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>SASL</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/docs/SASL.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="sasl">
+<h1>SASL<a class="headerlink" href="#sasl" title="Permalink to this heading"></a></h1>
+<p>Once Postfix is up and running, add SASL authentication to avoid open relaying. In order to prevent anonymous users from spamming, only authenticated and trusted users will be able to send emails. Postfix supports two SASL implementations: Cyrus SASL (SMTP client and server) and Dovecot SASL (SMTP server only). Both implementations can be built into Postfix simultaneously.</p>
+<section id="cyrus">
+<h2>Cyrus<a class="headerlink" href="#cyrus" title="Permalink to this heading"></a></h2>
+<p>Install:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># apt-get install libsasl2-modules sasl2-bin
+</pre></div>
+</div>
+<p>SASL can use different authentication methods. The default one is PAM (as configured in <code class="docutils literal notranslate"><span class="pre">/etc/conf.d/saslauthd</span></code>), but to set it up properly you have to create <code class="docutils literal notranslate"><span class="pre">/etc/sasl2/smtpd.conf</span></code>. Pambase 20190105.1-1 and newer use restrictive fallback for “other” PAM service, and a pam configuration file is required.</p>
+<p>Create a file <code class="docutils literal notranslate"><span class="pre">/etc/postfix/sasl/smtpd.conf</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pwcheck_method: saslauthd
+mech_list: PLAIN LOGIN
+log_level: 7
+</pre></div>
+</div>
+<p>Setup a separate saslauthd process to be used from Postfix. Create a copy of saslauthd’s config file:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># cp /etc/default/saslauthd /etc/default/saslauthd-postfix
+</pre></div>
+</div>
+<p>Append:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>START=yes
+DESC=&quot;SASL Auth. Daemon for Postfix&quot;
+NAME=&quot;saslauthd-postf&quot;      # max. 15 char.
+# Option -m sets working dir for saslauthd (contains socket)
+OPTIONS=&quot;-c -m /var/spool/postfix/var/run/saslauthd&quot;        # postfix/smtp in chroot()
+</pre></div>
+</div>
+<p>Create the required subdirectories in postfix chroot directory:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dpkg-statoverride --add root sasl 710 /var/spool/postfix/var/run/saslauthd
+</pre></div>
+</div>
+<p>Add user <code class="docutils literal notranslate"><span class="pre">postfix</span></code> to the group <code class="docutils literal notranslate"><span class="pre">sasl</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>adduser postfix sasl
+</pre></div>
+</div>
+<p>Restart saslauthd:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># systemctl saslauthd  restart
+[ ok ] Stopping SASL Auth. Daemon: saslauthd.
+[ ok ] Stopping SASL Auth. Daemon for Postfix: saslauthd-postf.
+[ ok ] Starting SASL Auth. Daemon: saslauthd.
+[ ok ] Starting SASL Auth. Daemon for Postfix: saslauthd-postf.
+</pre></div>
+</div>
+<p>Edit <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>smtpd_sasl_local_domain = $myhostname
+smtpd_sasl_auth_enable = yes
+broken_sasl_auth_clients = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_recipient_restrictions = permit_sasl_authenticated, permit_mynetworks, reject_unauth_destination
+</pre></div>
+</div>
+<p>Restart (reloading is not enough):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># systemctl postfix restart
+</pre></div>
+</div>
+<section id="smtp">
+<h3>SMTP<a class="headerlink" href="#smtp" title="Permalink to this heading"></a></h3>
+<p>To enable SASL for accepting mail from other users, in <code class="docutils literal notranslate"><span class="pre">/etc/postfix/master.cf</span></code> under the submission or smtp section (depending on what is used) append/uncomment:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>submission inet n       -       n       -       -       smtpd
+  -o syslog_name=postfix/submission
+  -o smtpd_tls_security_level=encrypt
+  -o smtpd_sasl_auth_enable=yes
+  -o smtpd_reject_unlisted_recipient=no
+#  -o smtpd_client_restrictions=$mua_client_restrictions
+#  -o smtpd_helo_restrictions=$mua_helo_restrictions
+#  -o smtpd_sender_restrictions=$mua_sender_restrictions
+  -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject
+  -o milter_macro_daemon_name=ORIGINATING
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>The three restriction options (client, helo, sender) can also be left commented out, since <code class="docutils literal notranslate"><span class="pre">smtpd_recipient_restrictions</span></code> already handles SASL users.</p></li>
+</ul>
+<p>Start/enable the saslauthd service and restart the postfix service.</p>
+</section>
+</section>
+<section id="dovecot">
+<h2>Dovecot<a class="headerlink" href="#dovecot" title="Permalink to this heading"></a></h2>
+<p>If Dovecot is used as IMAP or POP mail server and <strong>all users</strong> already authenticate (such as with <a class="reference external" href="https://tymyrddin.github.io/linux-server-mitigations/docs/pki/PAM.html" title="(in Linux server mitigations)"><span class="xref myst">PAM</span></a>), then there is no need to configure another package.</p>
+<section id="id1">
+<h3>SMTP<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p>Edit <code class="docutils literal notranslate"><span class="pre">/etc/postfix/master.cf</span></code> and append/uncomment under the submission or smtp section (depending on what is used):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># SASL authentication with dovecot
+  -o smtpd_tls_security_level=encrypt
+  -o smtpd_sasl_auth_enable=yes
+  -o smtpd_sasl_type=dovecot
+  -o smtpd_sasl_path=private/auth
+  -o smtpd_sasl_security_options=noanonymous
+  -o smtpd_sasl_local_domain=$myhostname
+  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+  -o smtpd_recipient_restrictions=reject_non_fqdn_recipient,reject_unknown_recipient_domain,permit_sasl_authenticated,reject
+</pre></div>
+</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>smtpd_relay_restrictions = permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination
+smtpd_sasl_local_domain = $myhostname
+</pre></div>
+</div>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">smtpd_sender_restrictions</span></code> filters mails based on the MAIL FROM command; This command is easy faked by telneting an open relay and typing in this command, therefore mail counl be sent with a valid MAIL FROM address. Use <code class="docutils literal notranslate"><span class="pre">smtpd_client_restrictions</span></code> instead, which checks the hostname or IP address of the smtpd client (the other MTA/SMTP connecting to the internal smtpd) in a black list, if listed mail is denied.</p></li>
+<li><p>If mails are marked as <code class="docutils literal notranslate"><span class="pre">NoBounceOpenRelay</span></code> try:</p>
+<p>smtpd_sasl_authenticated_header = yes</p>
+</li>
+</ul>
+<p>To configure Postfix to enable email clients to connect to the SMTP server. In <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $myhostname
+smtpd_recipient_restrictions = permit_sasl_authenticated,permit_mynetworks, reject_unauth_destination
+broken_sasl_auth_clients = yes
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">broken_sasl_auth_clients</span></code> enables interoperability with remote SMTP clients that implement an obsolete version of the AUTH command. Default is <code class="docutils literal notranslate"><span class="pre">no</span></code>. Setting it to <code class="docutils literal notranslate"><span class="pre">yes</span></code> makes Postfix advertise AUTH support in a non-standard way.</p></li>
+</ul>
+<p>Restart both dovecot and postfix.</p>
+</section>
+</section>
+<section id="configuration-resources">
+<h2>Configuration resources<a class="headerlink" href="#configuration-resources" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://wiki2.dovecot.org/HowTo/PostfixAndDovecotSASL">Postfix and Dovecot SASL</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Rspamd.html" class="btn btn-neutral float-left" title="Rspamd" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SPF.html" class="btn btn-neutral float-right" title="SPF" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+        <a href="https://unseen-uni.netlify.app/">Unseen University</a>, 2022
+
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

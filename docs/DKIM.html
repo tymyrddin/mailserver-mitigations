@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DKIM &mdash; Mailserver mitigations</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Dovecot" href="Dovecot.html" />
+    <link rel="prev" title="DANE" href="DANE.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mailserver mitigations
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Common mitigations</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Cyrus.html">Cyrus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DANE.html">DANE</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">DKIM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Dovecot.html">Dovecot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Postfix.html">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rspamd.html">Rspamd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SASL.html">SASL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SPF.html">SPF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TLS.html">TLS</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">All mitigations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://tymyrddin.github.io/mitigations/">Overview</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mailserver mitigations</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>DKIM</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/docs/DKIM.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dkim">
+<h1>DKIM<a class="headerlink" href="#dkim" title="Permalink to this heading"></a></h1>
+<p>DKIM (DomainKeys Identified Mail) is a system that lets official mail servers add a signature to headers of outgoing email and identifies a domain’s public key so other mail servers can verify the signature. As with SPF, DKIM helps keep mail from being considered spam. It also lets mail servers detect when mail has been tampered with in transit.</p>
+<ul class="simple">
+<li><p>Senders choose which elements of the email are to be included in the DKIM signing process: The whole message (header and body) or one or more fields of the email header. These elements must remain unchanged in transit, or the DKIM signature will fail authentication.</p></li>
+<li><p>The sender configures the mailserver to automatically create a hash of the parts of the email that are to be signed.</p></li>
+<li><p>The email provider receiving the email sees that it has a DKIM signature (and which “domain/selector” combination signed the encryption). It will run a DNS query to find the public key for that “domain/selector” combination.</p></li>
+<li><p>A keypair match enables the email provider to decrypt the DKIM signature back to the original hash string. The receiving email provider takes the elements of the email signed by DKIM, generates its own hash of these elements, and compares that hash with the decrypted hash from the signature.</p></li>
+<li><p>Depending on the implementation, DKIM can also ensure that a message has not been modified or tampered with in transit.</p></li>
+<li><p>It is complex and has not been adopted widely. =&gt; No DKIM signature does not mean an email is fake.</p></li>
+<li><p>The DKIM domain is not visible to end users and one needs to have a bit of a techie to make it visible and understand it. It is over many heads. Woosh!</p></li>
+<li><p>DKIM does not prevent spoofing of the visible header “From:” domain.</p></li>
+<li><p>This is for debian 9 (will probably also work on buster)</p></li>
+</ul>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># apt-get install opendkim opendkim-tools
+</pre></div>
+</div>
+</section>
+<section id="unix-socket">
+<h2>Unix socket<a class="headerlink" href="#unix-socket" title="Permalink to this heading"></a></h2>
+<p>Postfix and opendkim communicate through a unix socket. Socket address is usually the one specified in <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code>, but the default configuration of postfix in debian runs under a chroot (<code class="docutils literal notranslate"><span class="pre">/var/spool/postfix</span></code>) so the socket must be created in the jail:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># sockdir=/var/spool/postfix/var/run/opendkim
+# mkdir -p $sockdir
+# chown opendkim. $sockdir
+# chmod go-rwx $sockdir
+# chmod g+x $sockdir
+</pre></div>
+</div>
+</section>
+<section id="generate-keys">
+<h2>Generate keys<a class="headerlink" href="#generate-keys" title="Permalink to this heading"></a></h2>
+<p>Generate the key pair. To generate a secret signing key, you need to specify the domain used to send mails and a selector which is used to refer to the key (choose anything you like, alpha-numeric strings will do).</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># opendkim-genkey -r -s myselector -b 2048 -d $domain.tld
+</pre></div>
+</div>
+<p>This creates two files in <code class="docutils literal notranslate"><span class="pre">/etc/dkimkeys/</span></code>: <code class="docutils literal notranslate"><span class="pre">myselector.private</span></code> and <code class="docutils literal notranslate"><span class="pre">myselector.txt</span></code>, the private and public key. Make sure that only the <code class="docutils literal notranslate"><span class="pre">opendkim</span></code> user can read them:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>chgrp opendkim /etc/dkimkeys/*
+chmod go-rwx /etc/dkimkeys/*
+</pre></div>
+</div>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h2>
+<p>Copy the sample configuration file <code class="docutils literal notranslate"><span class="pre">/etc/opendkim/opendkim.conf.sample</span></code> (or <code class="docutils literal notranslate"><span class="pre">/usr/share/doc/opendkim/opendkim.conf.sample</span></code>) to <code class="docutils literal notranslate"><span class="pre">/etc/opendkim/opendkim.conf</span></code> and change:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Domain                  $domain.tld
+KeyFile                 /path/to/keys/myselector.private
+Selector                myselector
+Socket                  inet:8891@localhost
+UserID                  opendkim
+</pre></div>
+</div>
+<p>On debian, for the unix socket:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Syslog                   yes
+
+# Required to use local socket with MTAs that access the socket as a non-
+# privileged user (e.g. Postfix)
+UMask                   007
+
+# DO NOT BELIEVE that /etc/default/opendkim overrides the following :
+# (In stretch, it does not on 2019-08-13)
+Socket                  local:/var/spool/postfix/var/run/opendkim/opendkim.sock
+</pre></div>
+</div>
+<section id="multiple-domains">
+<h3>Multiple domains<a class="headerlink" href="#multiple-domains" title="Permalink to this heading"></a></h3>
+<p>If you are providing mail server service to multiple virtual domains on the same server, provide these directives:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>KeyTable                refile:/etc/opendkim/KeyTable
+SigningTable            refile:/etc/opendkim/SigningTable
+ExternalIgnoreList      refile:/etc/opendkim/TrustedHosts
+InternalHosts           refile:/etc/opendkim/TrustedHosts
+</pre></div>
+</div>
+<p>You have to create/move/copy DKIM keys in a separate domain folder for each domain, for example <code class="docutils literal notranslate"><span class="pre">/etc/opendkim/keys/domain1.com/</span></code>.  Otherwise you will receive<code class="docutils literal notranslate"><span class="pre">dkim:</span> <span class="pre">FAILED,</span> <span class="pre">invalid</span> <span class="pre">(public</span> <span class="pre">key:</span> <span class="pre">not</span> <span class="pre">available)”</span> <span class="pre">error</span> <span class="pre">message</span> <span class="pre">with</span> <span class="pre">DKIM</span> <span class="pre">email</span> <span class="pre">test</span></code>. You can use the same key for all the domains or generate a separate key for each domain.</p>
+<p>Edit the <code class="docutils literal notranslate"><span class="pre">/etc/opendkim/KeyTable</span></code> file to specify key locations:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>myselector._domainkey.domain1.com domain1.com:mail:/etc/opendkim/keys/domain1.com/myselector.private
+myselector._domainkey.domain2.com domain2.com:mail:/etc/opendkim/keys/domain2.com/myselector.private
+</pre></div>
+</div>
+<p>Edit the /etc/opendkim/SigningTable file to specify which key will sign a domain.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>*@domain1.com myselector._domainkey.domain1.com
+*@domain2.com myselector._domainkey.domain2.com
+</pre></div>
+</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">/etc/opendkim/TrustedHosts</span></code>, add trusted domain and IP addresses who can use the keys. If needed, include localhost as it is not implicit.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>127.0.0.1
+::1
+localhost
+&lt;some_server_ip&gt;
+hostname.domain1.com
+domain1.com
+hostname.domain2.com
+domain2.com
+...
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>This is referenced by the <code class="docutils literal notranslate"><span class="pre">ExternalIgnoreList</span></code> directive. Opendkim will ignore this list of hosts when verifying incoming mail.</p></li>
+<li><p>It is also referenced by the <code class="docutils literal notranslate"><span class="pre">InternalHosts</span></code> directive, this same list of hosts will be considered “internal,” and opendkim will sign their outgoing mail.</p></li>
+</ul>
+<p>The flow for DKIM lookup starts with the sender’s address. The signing table is scanned until an entry whose pattern matches the address is found. Then, the second item’s value is used to locate the entry in the key table whose key information will be used. For incoming mail the domain and selector are then used to find the public key TXT record in DNS and that public key is used to validate the signature. For outgoing mail the private key is read from the named file and used to generate the signature on the message.</p>
+</section>
+</section>
+<section id="postfix-integration">
+<h2>Postfix integration<a class="headerlink" href="#postfix-integration" title="Permalink to this heading"></a></h2>
+<p>To make Postfix listen to the unix socket on debian (set up as above):</p>
+<p>Add user <code class="docutils literal notranslate"><span class="pre">postfix</span></code> to the <code class="docutils literal notranslate"><span class="pre">opendkim</span></code> group (postfix needs to be able to access the socket):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># adduser postfix opendkim 
+</pre></div>
+</div>
+<p>And append to <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>milter_default_action = accept
+milter_protocol = 6
+# from inside the chroot, the socket will be in /var/run/opendkim 
+smtpd_milters = unix:/var/run/opendkim/opendkim.sock
+non_smtpd_milters = unix:/var/run/opendkim/opendkim.sock
+</pre></div>
+</div>
+<section id="restart-postfix">
+<h3>Restart postfix<a class="headerlink" href="#restart-postfix" title="Permalink to this heading"></a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># systemctl restart postfix
+</pre></div>
+</div>
+</section>
+</section>
+<section id="dns-configuration">
+<h2>DNS Configuration<a class="headerlink" href="#dns-configuration" title="Permalink to this heading"></a></h2>
+<p>Add a TXT record for your domain(s). For example: As a Hostname, use the <code class="docutils literal notranslate"><span class="pre">myselector</span></code> followed by the literal string <code class="docutils literal notranslate"><span class="pre">._domainkey</span></code> and use as Text:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>v=DKIM1; p=yourPublicKey
+</pre></div>
+</div>
+<p>Or</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>v=DKIM1; h=sha256; k=rsa; s=email; p=yourPublicKey
+</pre></div>
+</div>
+<p>Exact format may vary per DNS provider. Check the documentation for the exact style required.</p>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Try to send a mail. Check <code class="docutils literal notranslate"><span class="pre">/var/log/mail.log</span></code></p></li>
+<li><p>Test the installation with <code class="docutils literal notranslate"><span class="pre">opendkim-testkey</span></code>:</p></li>
+</ul>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># opendkim-testkey -d $domain.tld -s myselector -vvv</span>
+</pre></div>
+</div>
+</section>
+<section id="configuration-resources">
+<h2>Configuration resources<a class="headerlink" href="#configuration-resources" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://noxxi.de/research/breaking-dkim-on-purpose-and-by-chance.html">Breaking DKIM - on Purpose and by Chance</a>, October 2017, Update 08/2018</p></li>
+<li><p><a class="reference external" href="https://wiki.debian.org/opendkim">Debian: opendkim</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="DANE.html" class="btn btn-neutral float-left" title="DANE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Dovecot.html" class="btn btn-neutral float-right" title="Dovecot" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+        <a href="https://unseen-uni.netlify.app/">Unseen University</a>, 2022
+
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

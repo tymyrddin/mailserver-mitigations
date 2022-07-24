@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPF &mdash; Mailserver mitigations</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TLS" href="TLS.html" />
+    <link rel="prev" title="SASL" href="SASL.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mailserver mitigations
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Common mitigations</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Cyrus.html">Cyrus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DANE.html">DANE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DKIM.html">DKIM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Dovecot.html">Dovecot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Postfix.html">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rspamd.html">Rspamd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SASL.html">SASL</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SPF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TLS.html">TLS</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">All mitigations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://tymyrddin.github.io/mitigations/">Overview</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mailserver mitigations</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>SPF</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/docs/SPF.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="spf">
+<h1>SPF<a class="headerlink" href="#spf" title="Permalink to this heading"></a></h1>
+<p>The Sender Policy Framework is an open standard specifying a technical method to prevent sender address forgery. I plain language, it is a method of informing servers whether a specific mail server is authorised to send an email for a particular domain. With that, it can detect whether an email address is authentic or fake, before allowing it to pass into an inbox. An SPF record increases the likelihood that emails sent by valid addresses are delivered. Without it, genuine email could be categorised as spam. It also protects against malicious emails sent through your domain by spammers.</p>
+<ul class="simple">
+<li><p>A email provider publishes SPF records in the Domain Name System (DNS). These records list which IP addresses are authorised to send email on behalf of their domains.</p></li>
+<li><p>In an SPF check, email providers verify the SPF record by looking up the domain name listed in the return path address in the DNS. If the IP address sending email on behalf of the “return path” domain is not listed the record, the message fails authentication.</p></li>
+<li><p>SPF records must be kept updated.</p></li>
+<li><p>If a message fails SPF check, that doesn’t mean it will always be blocked.</p></li>
+<li><p>Breaks when a message is forwarded.</p></li>
+<li><p>Does not protect against spoofing of the visible “From” address in messages.</p></li>
+</ul>
+<section id="add-spf-records-to-dns">
+<h2>Add SPF records to DNS<a class="headerlink" href="#add-spf-records-to-dns" title="Permalink to this heading"></a></h2>
+<p>In order that receiving servers can check your SPF record it must be publicly visible. This means publishing it to the DNS server for the chosen domain(s). Go to their domain zone pages and add a new TXT record. For example, to allow mail from all hosts listed in the MX records for the domain:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>v=spf1 mx -all
+</pre></div>
+</div>
+<p>To allow mail from a specific host:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>v=spf1 a:mail.somedomain.tld -all
+</pre></div>
+</div>
+<p>Exact format may vary per DNS provider. Check the documentation for the exact style required.</p>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<p>The Python SPF policy agent adds SPF policy-checking to Postfix. The SPF record for the sender’s domain for incoming mail will be checked and, if it exists, mail will be handled accordingly.</p>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h2>
+<section id="policyd-spf-conf">
+<h3>policyd-spf.conf<a class="headerlink" href="#policyd-spf-conf" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">/etc/postfix-policyd-spf-python/policyd-spf.conf</span></code> looks something like:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>debugLevel = 1
+defaultSeedOnly = 1
+
+HELO_reject = SPF_Not_Pass
+Mail_From_reject = Fail
+
+PermError_reject = False
+TempError_Defer = False
+
+skip_addresses = 127.0.0.0/8,::ffff:127.0.0.0/104,::1
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">debugLevel</span></code> controls the amount of information logged by the policy server. The default, level 1, logs no debugging messages, just basic SPF results and errors generated through the policy server.</p></li>
+<li><p>The policy server can operate in a test only mode. This allows you to see the potential impact of SPF checking in your mail logs without rejecting mail. Headers are prepended in messages, but message delivery is not affected. This mode is not enabled by default. To enable it, set <code class="docutils literal notranslate"><span class="pre">TestOnly</span> <span class="pre">=</span> <span class="pre">0</span></code>. This option was previously named <code class="docutils literal notranslate"><span class="pre">defaultSeedOnly</span></code>. This is still accepted, but logs an error.</p></li>
+<li><p>The default HELO check rejection policy is <code class="docutils literal notranslate"><span class="pre">SPF_Not_Pass</span></code>, meaning reject if the SPF result is Fail, Softfail, Neutral, PermError. Not fully RFC 4408 compliant but HELO/EHLO is known first in the SMTP dialogue and there is no reason to waste resources on Mail From checks if the HELO check will already reject the message.</p></li>
+</ul>
+</section>
+</section>
+<section id="postfix-integration">
+<h2>Postfix integration<a class="headerlink" href="#postfix-integration" title="Permalink to this heading"></a></h2>
+<section id="master-cf">
+<h3>master.cf<a class="headerlink" href="#master-cf" title="Permalink to this heading"></a></h3>
+<p>In <code class="docutils literal notranslate"><span class="pre">/etc/postfix/master.cf</span></code> append:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>policyd-spf unix -       n       n       -       0       spawn user=nobody
+argv=/usr/bin/policyd-spf
+</pre></div>
+</div>
+</section>
+<section id="main-cf">
+<h3>main.cf<a class="headerlink" href="#main-cf" title="Permalink to this heading"></a></h3>
+<p>To increase the Postfix policy agent timeout, which will prevent Postfix from aborting the agent if transactions run a bit slowly</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>policyd-spf_time_limit = 3600
+</pre></div>
+</div>
+<p>And append <code class="docutils literal notranslate"><span class="pre">check_policy_service</span> <span class="pre">unix:private/policyd-spf</span></code> <strong>after</strong> <code class="docutils literal notranslate"><span class="pre">reject_unauth_destination</span></code>, for example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>smtpd_recipient_restrictions = reject_non_fqdn_recipient,reject_unknown_recipient_domain,permit_mynetworks,permit_sasl_authenticated,reject_unauth_destination,reject_non_fqdn_sender,reject_unlisted_recipient,check_policy_service unix:private/policyd-spf
+</pre></div>
+</div>
+</section>
+<section id="restart-postfix">
+<h3>Restart postfix<a class="headerlink" href="#restart-postfix" title="Permalink to this heading"></a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># systemctl restart postfix
+</pre></div>
+</div>
+</section>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Check the operation of the policy agent by looking at raw headers on incoming email messages for the SPF results header.</p></li>
+<li><p>The SPF policy agent also logs to <code class="docutils literal notranslate"><span class="pre">/var/log/mail.log</span></code>. In the mail.log file you’ll see messages like this from the policy agent</p></li>
+</ul>
+</section>
+<section id="configuration-resources">
+<h2>Configuration resources<a class="headerlink" href="#configuration-resources" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://manpages.debian.org/testing/postfix-policyd-spf-python/policyd-spf.conf.5.en.html">Man policyd-spf</a> - policyd-spf python configuration parameters</p></li>
+<li><p><a class="reference external" href="https://www.kitterman.com/spf/validate.html">Kitterman Technical Services</a> offers tools for setting up an SPF record.</p></li>
+<li><p><a class="reference external" href="https://appmaildev.com/en/spf/">appmaildev.com</a> also allows for testing SPF records.</p></li>
+<li><p><a class="reference external" href="https://mxtoolbox.com/">MX Toolbox</a> allows users to <a class="reference external" href="https://mxtoolbox.com/spf.aspx">look up their SPF records</a>, making it possible to publish a list of domains that are authorised to send an email on their behalf, and a <a class="reference external" href="https://mxtoolbox.com/blacklists.aspx">check if your mail server is blacklisted</a>.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SASL.html" class="btn btn-neutral float-left" title="SASL" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="TLS.html" class="btn btn-neutral float-right" title="TLS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+        <a href="https://unseen-uni.netlify.app/">Unseen University</a>, 2022
+
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

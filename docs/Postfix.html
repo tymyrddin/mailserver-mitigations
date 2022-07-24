@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Postfix &mdash; Mailserver mitigations</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Rspamd" href="Rspamd.html" />
+    <link rel="prev" title="Dovecot" href="Dovecot.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Mailserver mitigations
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Common mitigations</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Cyrus.html">Cyrus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DANE.html">DANE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DKIM.html">DKIM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Dovecot.html">Dovecot</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rspamd.html">Rspamd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SASL.html">SASL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SPF.html">SPF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TLS.html">TLS</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">All mitigations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://tymyrddin.github.io/mitigations/">Overview</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mailserver mitigations</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Postfix</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/docs/Postfix.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="postfix">
+<h1>Postfix<a class="headerlink" href="#postfix" title="Permalink to this heading"></a></h1>
+<p>Postfix is a mail transfer agent (MTA). The below was for debian 9 (will most likely also work with later versions).</p>
+<ul class="simple">
+<li><p>The two most important configuration files are:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">/etc/postfix/master.cf</span></code>, defining what Postfix services are enabled and how clients connect to them</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code>, the main configuration file, the bulk, the meat.</p></li>
+</ul>
+</li>
+<li><p>Most configuration changes only need a reload of postfix in order to take effect. Only some require a restart.</p></li>
+<li><p>Don’t manage mailboxes from postfix.</p></li>
+<li><p>Check configuration with the <code class="docutils literal notranslate"><span class="pre">postfix</span> <span class="pre">check</span></code> command.</p></li>
+<li><p>To see all of the configuration files use the <code class="docutils literal notranslate"><span class="pre">postconf</span></code> command.</p></li>
+<li><p>To see how the setup differs from the defaults, use <code class="docutils literal notranslate"><span class="pre">postconf</span> <span class="pre">-n</span></code>.</p></li>
+<li><p>On debian, Postfix runs by default in a chroot jail. On other distro’s where this is not the case, it is recommended to set it up in a jail.</p></li>
+<li><p>Limit use of Postfix services</p></li>
+<li><p>Restrict which hosts are granted or refused access with the <code class="docutils literal notranslate"><span class="pre">smtpd_*_restrictions</span></code> directives.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">vrfy</span></code> command allows an attacker to determine if an account exists on a system, providing significant assistance to a brute force attack on user accounts. <code class="docutils literal notranslate"><span class="pre">vrfy</span></code> may provide additional information about users on the system, such as the full names of account owners. Default is <code class="docutils literal notranslate"><span class="pre">no</span></code>. Set to <code class="docutils literal notranslate"><span class="pre">disable_vrfy_command</span> <span class="pre">=</span> <span class="pre">yes</span></code>.</p></li>
+<li><p>Client control rules can be based on the sender or receiver address and limitations of the number and size of email messages.</p></li>
+<li><p>Consider greylisting: In greylisting the server sends a request to have the email resent, after temporarily rejecting the email. The server saves in a list the sender IP and the recipient and returns a temporary error. All valid servers will then resend the emails, spamming scripts will not.</p></li>
+<li><p>Other efficient protocol level solutions in Postfix can be used to make sure the mail server is RFC compliant and prevent email looping (a very simple method would be setting a maximum numbers of “Received” headers per email).</p></li>
+<li><p>With policy services Postfix’ behaviour of mail delivery can be fine-tuned. Making changes to configurations of such services require a restart of Postfix.</p></li>
+</ul>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># apt-get install postfix
+</pre></div>
+</div>
+<p>You will be asked a series of questions. On the first prompt, select //Internet Site// option as the general type for Postfix configuration, continue, and then add domain name to system mail name.</p>
+</section>
+<section id="basic-configuration">
+<h2>Basic configuration<a class="headerlink" href="#basic-configuration" title="Permalink to this heading"></a></h2>
+<p>Configure the basics:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># cp /etc/postfix/main.cf{,.old}
+# vi /etc/postfix/main.cf
+
+
+myhostname = $hostname                                   //Use command &quot;hostname&quot; to display your hostname
+myorigin = $mydomain                                     //Add domain, so others can not abuse the mailsystem
+relay_domains = domain1.com, domain2.com, domain3.com    //Add the domains the system will handle
+</pre></div>
+</div>
+<section id="multiple-local-domains">
+<h3>Multiple local domains<a class="headerlink" href="#multiple-local-domains" title="Permalink to this heading"></a></h3>
+<p>Postfix can be configured for more than one domain via the use of a hash file. This file contains the list of domains postfix will accept for local delivery. Open the <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code> configuration file and append:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>virtual_alias_domains = hash:/etc/postfix/virtual_domains
+</pre></div>
+</div>
+<p>Create the file, and add all the domains postfix should accept in it (one per line). The postmap program expects the file to have 2 columns but the second column is ignored. Do add that second column and add comments like <code class="docutils literal notranslate"><span class="pre">#something</span></code> in it. It will work without, but you get warnings.</p>
+<p>To make the hashfile:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># postmap /etc/postfix/virtual_domains
+</pre></div>
+</div>
+</section>
+<section id="remote-access">
+<h3>Remote access<a class="headerlink" href="#remote-access" title="Permalink to this heading"></a></h3>
+<p>The postfix SMTP server access table contains the list for access control for remote SMTP clients:</p>
+<p>Open the <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code> configuration file and append:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>check_sender_access = hash:/etc/postfix/access
+</pre></div>
+</div>
+<p>Create the file, and add all the host names, network addresses, and envelope sender or recipient addresses postfix should accept in it (one per line)</p>
+<p>To make the hashfile:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># postmap /etc/postfix/access
+</pre></div>
+</div>
+</section>
+</section>
+<section id="managing-mailboxes">
+<h2>Managing mailboxes<a class="headerlink" href="#managing-mailboxes" title="Permalink to this heading"></a></h2>
+<p><strong>Don’t manage mailboxes from postfix.</strong> Redirect messages for delivery via POP/IMAP server. In case of dovecot there is <code class="docutils literal notranslate"><span class="pre">dovecot-lda</span></code> aka <code class="docutils literal notranslate"><span class="pre">deliver</span></code> that do everything and much more, like user-controlled message filtering, quota management, autoreplying etc. Most modern POP/IMAP servers have a lot of utilities for common tasks in infrastructures.</p>
+<p>Maildir <strong>is</strong> the newer and preferrable format due to the lot of improvements comparatively to mailbox. It has an index for each folder that allow to control duplicates, expiration times and even full-text search and is faster on a huge pile of messages. Dovecot can easily operate maildir with 300k messages in it without any visible slowdown.</p>
+</section>
+<section id="abuse-and-spam">
+<h2>Abuse and spam<a class="headerlink" href="#abuse-and-spam" title="Permalink to this heading"></a></h2>
+<section id="smtp-restrictions">
+<h3>SMTP restrictions<a class="headerlink" href="#smtp-restrictions" title="Permalink to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">smtpd_*_restrictions</span></code> directives can be used to set what data is accepted for any SMTP command, for example in <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># smtpd_recipient_restrictions = reject_invalid_hostname,
+    reject_unknown_recipient_domain,
+    reject_unauth_destination,
+    reject_rbl_client sbl.spamhaus.org,
+    permit
+
+# smtpd_helo_restrictions = reject_invalid_helo_hostname,
+    reject_non_fqdn_helo_hostname,
+    reject_unknown_helo_hostname
+</pre></div>
+</div>
+</section>
+<section id="blacklisting">
+<h3>Blacklisting<a class="headerlink" href="#blacklisting" title="Permalink to this heading"></a></h3>
+<p>Manually blacklisting incoming emails by sender address can easily be done with Postfix. Create and open an <code class="docutils literal notranslate"><span class="pre">/etc/postfix/blacklist_incoming</span></code> file and append sender email addresses:</p>
+<p>user&#64;domain.com REJECT</p>
+<p>To create a database, use postmap command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># postmap hash:blacklist_incoming
+</pre></div>
+</div>
+<p>And append <strong>before the first permit rule</strong> in <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>smtpd_recipient_restrictions = check_sender_access hash:/etc/postfix/blacklist_incoming
+</pre></div>
+</div>
+<p>Use of others’ lists is also possible. An RBL list is a spammer blacklist of domains. In <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>smtpd_client_restrictions = reject_rbl_client dnsbl.sorbs.net
+</pre></div>
+</div>
+</section>
+<section id="greylisting">
+<h3>Greylisting<a class="headerlink" href="#greylisting" title="Permalink to this heading"></a></h3>
+<p>Install the postgrey package. Open up <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code> and append</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>smtpd_recipient_restrictions = check_policy_service inet:127.0.0.1:10030
+</pre></div>
+</div>
+<p>Then start/enable the <code class="docutils literal notranslate"><span class="pre">postgrey</span></code> service and after that reload the postfix service.</p>
+<p>Its configuration is done via editing the postgrey.service file. Copy it over to edit it.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># cp /usr/lib/systemd/system/postgrey.service /etc/systemd/system/
+</pre></div>
+</div>
+<p>Using postgrey it is also possible to add automatic whitelisting based on successful deliveries. These then don’t have to wait any more. This can be done by , you could add the adding the <code class="docutils literal notranslate"><span class="pre">--auto-whitelist-clients=5</span></code> (default is 5) but the preferred method is the override:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># cat /etc/systemd/system/postgrey.service.d/override.conf
+[Service]
+ExecStart=
+ExecStart=/usr/bin/postgrey --inet=127.0.0.1:10030 \
+       --pidfile=/run/postgrey/postgrey.pid \
+       --group=postgrey --user=postgrey \
+       --daemonize \
+       --greylist-text=&quot;Greylisted for %%s seconds&quot; \
+       --auto-whitelist-clients
+</pre></div>
+</div>
+<p>Add your own list of whitelisted clients in addition to the default ones by creating the file <code class="docutils literal notranslate"><span class="pre">/etc/postfix/whitelist_clients.local</span></code> (one host or domain per line).</p>
+<p>Restart the postgrey.service for the changes to take effect.</p>
+</section>
+<section id="header-filtering">
+<h3>Header filtering<a class="headerlink" href="#header-filtering" title="Permalink to this heading"></a></h3>
+<p>Postfix header or body_checks are designed to stop a flood of mail from worms or viruses. Optional lookup tables for content inspection of primary non-MIME message headers are used. This does not decode attachments or unzip archives. Default is <code class="docutils literal notranslate"><span class="pre">empty</span></code>. In this mechanism checks can be made against regular expressions.</p>
+<p>For example, postfix can search for any string in an incoming email. In <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code> set:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>header_checks = regexp: /etc/postfix/headers_checks
+</pre></div>
+</div>
+<p>Then in <code class="docutils literal notranslate"><span class="pre">/etc/postfix/header_checks</span></code> append regular expressions for what to check for:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>/^(.*)@domain.com/ REJECT    //Match any recipient/sender for a specific domain
+</pre></div>
+</div>
+<p>The mechanism can also be used to hide a sender’s IP and user agent in the <code class="docutils literal notranslate"><span class="pre">Received</span></code> header. This is a privacy concern mostly for sending email with Thunderbird. The received header will contain LAN and WAN IP and info about the email client used.</p>
+<p>Append to <code class="docutils literal notranslate"><span class="pre">main.cf</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>smtp_header_checks = regexp:/etc/postfix/smtp_header_checks
+</pre></div>
+</div>
+<p>Create <code class="docutils literal notranslate"><span class="pre">/etc/postfix/smtp_header_checks</span></code> and append:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>/^Received: .*/     IGNORE
+/^User-Agent: .*/   IGNORE
+</pre></div>
+</div>
+</section>
+<section id="relaying">
+<h3>Relaying<a class="headerlink" href="#relaying" title="Permalink to this heading"></a></h3>
+<p>Relaying means that a sender with host in domain A, connects to our mailer in domain B to send an email to someone in domain C. A party for spammers. The easiest way to control relaying is to use the <code class="docutils literal notranslate"><span class="pre">smtpd_recipient_restrictions</span></code> directive; If this directive is left undefined, Postfix uses the information given in the directives <code class="docutils literal notranslate"><span class="pre">permit_mynetworks</span></code> and <code class="docutils literal notranslate"><span class="pre">check_relay_domains</span></code>.</p>
+</section>
+</section>
+<section id="rule-based-mail-processing">
+<h2>Rule-based mail processing<a class="headerlink" href="#rule-based-mail-processing" title="Permalink to this heading"></a></h2>
+<p>With policy services Postfix’ behaviour of mail delivery can be fine-tuned. This allows for implementing time-aware grey- and blacklisting of senders and receivers as well as SPF policy checking.</p>
+<p>Policy services are standalone services and connected to Postfix in <code class="docutils literal notranslate"><span class="pre">/etc/postfix/main.cf</span></code> by something like:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>smtpd_recipient_restrictions =
+                    ...
+  check_policy_service unix:/run/policyd.sock
+  check_policy_service inet:127.0.0.1:10040
+</pre></div>
+</div>
+<p>Placed at the end of the queue reduces load, as only legitimate mails are processed, but place it before the first permit statement to catch all incoming messages.</p>
+</section>
+<section id="notifications">
+<h2>Notifications<a class="headerlink" href="#notifications" title="Permalink to this heading"></a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>notify_classes = resource,software,bounce
+</pre></div>
+</div>
+<p>Postfix reports errors to the postmaster, organised in classes (<code class="docutils literal notranslate"><span class="pre">notify_classes</span></code>). The default is to report only the most serious problems (<code class="docutils literal notranslate"><span class="pre">resource,</span> <span class="pre">software</span></code>).</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bounce</span></code> (also implies <code class="docutils literal notranslate"><span class="pre">2bounce</span></code>): Send the postmaster copies of the headers of bounced mail, and send transcripts of SMTP sessions when Postfix rejects mail. The notification is sent to the address specified with the <code class="docutils literal notranslate"><span class="pre">bounce_notice_recipient</span></code> configuration parameter (default: <code class="docutils literal notranslate"><span class="pre">postmaster</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2bounce</span></code>: Send undeliverable bounced mail to the postmaster. The notification is sent to the address specified with the <code class="docutils literal notranslate"><span class="pre">2bounce_notice_recipient</span></code> configuration parameter (default: <code class="docutils literal notranslate"><span class="pre">postmaster</span></code>).</p></li>
+</ul>
+</section>
+<section id="email-loops">
+<h2>Email loops<a class="headerlink" href="#email-loops" title="Permalink to this heading"></a></h2>
+<p>An email loop is an infinite loop phenomenon, resulting from mail servers, scripts, or email clients that generate automatic replies or responses. If one such automatic response triggers another automatic response on the other side, an email loop is created. The process can continue until one mailbox is full or reaches its mail sending limit. Email loops may be caused accidentally or maliciously, causing denial of service (DoS).</p>
+<p>Email loops are not common anymore, due to changes to email software on the client side and the server side, that prevent automatic replies to bounced mail responses.</p>
+<p>In Postfix, the maximal number of Received: message headers that is allowed in the primary message headers can be set with <code class="docutils literal notranslate"><span class="pre">hopcount_limit</span></code> (default: 50). A message that exceeds the limit is bounced, in order to stop a mailer loop.</p>
+</section>
+<section id="reload">
+<h2>Reload<a class="headerlink" href="#reload" title="Permalink to this heading"></a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># postfix reload
+</pre></div>
+</div>
+</section>
+<section id="restart">
+<h2>Restart<a class="headerlink" href="#restart" title="Permalink to this heading"></a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># systemctl restart postfix
+# systemctl status postfix
+# netstat -tlpn
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Dovecot.html" class="btn btn-neutral float-left" title="Dovecot" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Rspamd.html" class="btn btn-neutral float-right" title="Rspamd" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+        <a href="https://unseen-uni.netlify.app/">Unseen University</a>, 2022
+
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>
